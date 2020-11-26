@@ -96,7 +96,7 @@ const getAllProperties = function(options, limit = 10) {
     let queryString = `
     SELECT properties.*, avg(property_reviews.rating) as average_rating
     FROM properties
-    JOIN property_reviews ON properties.id = property_id
+    LEFT JOIN property_reviews ON properties.id = property_id
     WHERE 1 = 1
     `;
   
@@ -107,8 +107,8 @@ const getAllProperties = function(options, limit = 10) {
     }
 
     if (options.owner_id) {
-      queryParams.push(`${options.onwer_id}`);
-      queryString += `AND onwer_id = $${queryParams.length}`;
+      queryParams.push(`${options.owner_id}`);
+      queryString += `AND owner_id = $${queryParams.length}`;
     }
 
     if (options.minimum_price_per_night && options.maximum_price_per_night) {
@@ -132,7 +132,7 @@ const getAllProperties = function(options, limit = 10) {
     `;
   
     // 5
-    console.log(queryString, '......', queryParams);
+    console.log(queryString, queryParams);
   
     // 6
     return pool.query(queryString, queryParams)
@@ -150,12 +150,12 @@ const addProperty = function(property) {
   return pool.query(`
   INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, 
   street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms)
-  VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
   RETURNING *;
   `, [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, 
   property.cost_per_night, property.street, property.city, property.province, property.post_code, property.country,
   property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms])
-  .then(res => res.rows)
-  .catch(err => console.log(err));
+  .then(res => res.rows[0])
+  .catch(err => console.log(err))
 }
 exports.addProperty = addProperty;
